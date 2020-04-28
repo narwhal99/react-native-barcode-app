@@ -6,8 +6,10 @@
  * @flow strict-local
  */
 
-import React from 'react';
+import React, { Component } from 'react';
 import {
+  Alert,
+  FlatList,
   SafeAreaView,
   StyleSheet,
   ScrollView,
@@ -24,20 +26,35 @@ import {
   DebugInstructions,
   ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
+import BarcodeScanner from 'react-native-barcode-scanner-google'
+import axios from 'axios'
+export default class App extends Component {
+  state = {
+    data: ''
+  }
+  async componentDidMount() {
 
-const App = () => {
-  return (
-    <SafeAreaView>
+    axios.get('http://192.168.1.72:8080/test').then((data) => {
+      this.setState({ data: data.data })
+    }).catch((e) => {
+      console.error(e)
+    })
+  }
 
-      <Text>asd</Text>
-      <Text>asd</Text>
-    </SafeAreaView>
-
-
-  );
-};
+  render() {
+    return (
+      <View style={{ flex: 1 }}>
+        {/* <BarcodeScanner style={{ flex: 1 }}
+          onBarcodeRead={({ data, type }) => {
+            Alert.alert(`Barcode ‘${data}’ of type ‘${type}’ was scanned.`);
+          }}
+        /> */}
+        <Text>text</Text>
+        <Text>{this.state.data}</Text>
+      </View>
+    );
+  }
+}
 
 const styles = StyleSheet.create({
 })
-
-export default App;
