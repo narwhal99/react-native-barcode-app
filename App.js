@@ -1,60 +1,63 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
+import React from 'react';
+import { createStackNavigator } from '@react-navigation/stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Appearance, useColorScheme, AppearanceProvider } from 'react-native-appearance';
+import scannedFood from './src/pages/scannedFood'
+import HomeScreen from './src/pages/home'
+import CameraScreen from './src/pages/camera'
+import LoginScreen from './src/pages/login'
 
-import React, { Component } from 'react';
+const BottomTab = createBottomTabNavigator();
+const Stack = createStackNavigator();
 import {
-  Alert,
-  FlatList,
-  SafeAreaView,
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  StatusBar,
-  Button,
-} from 'react-native';
+  NavigationContainer,
+  DefaultTheme,
+  DarkTheme,
+} from '@react-navigation/native';
 
-import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-import BarcodeScanner from 'react-native-barcode-scanner-google'
-import axios from 'axios'
-export default class App extends Component {
-  state = {
-    data: ''
-  }
-  async componentDidMount() {
+export default App = () => {
 
-    axios.get('http://192.168.1.72:8080/test').then((data) => {
-      this.setState({ data: data.data })
-    }).catch((e) => {
-      console.error(e)
-    })
+  const colorScheme = useColorScheme();
+
+  const MyTheme = {
+    dark: false,
+    colors: {
+      primary: 'white',
+      background: 'white',
+      card: 'gray',
+      text: 'white',
+      border: 'green',
+    },
   }
 
-  render() {
+  createCameraStack = () => {
+    return <Stack.Navigator>
+      <Stack.Screen name="CameraScreen" component={CameraScreen} />
+      <Stack.Screen name="scannedFood" component={scannedFood} />
+    </Stack.Navigator>
+  }
+
+  createBottomTabs = () => {
     return (
-      <View style={{ flex: 1 }}>
-        {/* <BarcodeScanner style={{ flex: 1 }}
-          onBarcodeRead={({ data, type }) => {
-            Alert.alert(`Barcode ‘${data}’ of type ‘${type}’ was scanned.`);
-          }}
-        /> */}
-        <Text>text</Text>
-        <Text>{this.state.data}</Text>
-      </View>
-    );
+      <BottomTab.Navigator>
+        <BottomTab.Screen name="Home" component={HomeScreen}
+          options={{
+            tabBarIcon: () => (
+              <Icon style={[{ color: 'white' }]} size={25} name={'human'} />
+            )
+          }} />
+        <BottomTab.Screen name="Camera" children={this.createCameraStack} />
+        <BottomTab.Screen name="Login" component={LoginScreen} />
+      </BottomTab.Navigator >
+    )
   }
-}
 
-const styles = StyleSheet.create({
-})
+  return (
+    <AppearanceProvider>
+      <NavigationContainer theme={colorScheme == 'dark' ? DarkTheme : MyTheme}>
+        {this.createBottomTabs()}
+      </NavigationContainer>
+    </AppearanceProvider >
+  )
+}
