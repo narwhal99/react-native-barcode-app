@@ -22,9 +22,6 @@ export default class LoginTab extends Component {
             console.log(e.response.data)
         })
     }
-    print = async () => {
-        console.log(await AsyncStorage.getItem('token'))
-    }
     render() {
         return (
             <View style={styles.container}>
@@ -35,7 +32,6 @@ export default class LoginTab extends Component {
                     onChangeText={val => this.onChangeText('password', val)}
                     secureTextEntry={true} />
                 <Button title="Bejelentkezés" onPress={this.signUp} />
-                <Button title="Token print" onPress={this.print} />
             </View>
         )
     }
