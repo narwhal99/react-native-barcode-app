@@ -11,6 +11,7 @@ import UserScreen from './src/components/user'
 import RegisterScreen from './src/pages/register'
 import AsyncStorage from '@react-native-community/async-storage'
 import axios from 'axios';
+import { AuthContext } from "./src/components/context";
 
 const BottomTab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -54,53 +55,107 @@ const AuthStackScreen = () => (
 
 
 export default App = () => {
-  const [user, setUser] = React.useState(null)
 
-  async function checkToken() {
-    let token = ''
-    try {
-      token = await AsyncStorage.getItem('token')
-    } catch (e) {
-      console.log(e)
-    }
-
-    if (!token) {
-      setUser(null)
-    } else {
-      await axios.get('http://192.168.1.72:8080/getUser', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }).then((data) => {
-        setUser(data.data.user)
-      }).catch(e => {
-        console.log(e.response.data)
-      })
-    }
-  }
-
-  React.useEffect(() => {
-    checkToken()
-  }, [])
-  const colorScheme = useColorScheme();
-  const MyTheme = {
-    dark: false,
-    colors: {
-      primary: 'white',
-      background: 'white',
-      card: 'gray',
-      text: 'white',
-      border: 'green',
+  const [state, dispatch] = React.useReducer(
+    (prevState, action) => {
+      switch (action.type) {
+        case 'RESTORE_TOKEN':
+          return {
+            ...prevState,
+            userToken: action.token,
+            isLoading: false,
+          };
+        case 'SIGN_IN':
+          return {
+            ...prevState,
+            isSignout: false,
+            userToken: action.token,
+          };
+        case 'SIGN_OUT':
+          return {
+            ...prevState,
+            isSignout: true,
+            userToken: null,
+          };
+      }
     },
-  }
+    {
+      isLoading: true,
+      isSignout: false,
+      userToken: null,
+    }
+  );
+  React.useEffect(() => {
+    const bootstrapAsync = async () => {
+      let token;
+
+      try {
+        token = await AsyncStorage.getItem('userToken');
+      } catch (e) {
+        console.log(e)
+      }
+      try {
+        token = await axios.get('http://192.168.1.72:8080/logout', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+      } catch (e) {
+        await AsyncStorage.removeItem('userToken')
+        console.log(e)
+      }
+      dispatch({ type: 'RESTORE_TOKEN', token: token });
+    };
+
+    bootstrapAsync();
+  }, []);
+
+  const authContext = React.useMemo(
+    () => ({
+      signIn: async data => {
+        let response = ''
+        try {
+          response = await axios.post('http://192.168.1.72:8080/login', { email: data.email, password: data.password })
+          await AsyncStorage.setItem('userToken', response.data.token)
+        } catch (e) {
+          console.log(e.response.data)
+        }
+        dispatch({ type: 'SIGN_IN', token: response.data.token });
+      },
+      signOut: async () => {
+        try {
+          const token = await AsyncStorage.getItem('userToken')
+          await axios.get('http://192.168.1.72:8080/logout', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+          await AsyncStorage.setItem('userToken', null)
+        } catch (e) {
+          console.log(e)
+        }
+        dispatch({ type: 'SIGN_OUT' })
+      },
+      signUp: async data => {
+        // In a production app, we need to send user data to server and get a token
+        // We will also need to handle errors if sign up failed
+        // After getting token, we need to persist the token using `AsyncStorage`
+        // In the example, we'll use a dummy token
+
+        dispatch({ type: 'SIGN_IN', token: 'dummy-auth-token' });
+      },
+    }),
+    []
+  );
+
   return (
-    <AppearanceProvider>
-      <NavigationContainer theme={colorScheme == 'dark' ? DarkTheme : MyTheme}>
-        {user ? (
+    <AuthContext.Provider value={authContext}>
+      <NavigationContainer>
+        {state.userToken != null ? (
           createBottomTabs()
         ) : (
             AuthStackScreen())}
       </NavigationContainer>
-    </AppearanceProvider >
+    </AuthContext.Provider>
   )
 }
