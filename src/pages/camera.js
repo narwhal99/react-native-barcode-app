@@ -17,12 +17,12 @@ export default App = ({ navigation }) => {
     <SafeAreaView style={{ flex: 1 }}>
       <BarcodeScanner style={{ flex: 1 }}
         onBarcodeRead={({ data, type }) => {
-          axios.get(`http://world.openfoodfacts.org/api/v0/product/${data}`).then((item) => {
-            // Alert.alert(`Barcode ‘${data}’ ${item.data.product.product_name_hu} `);
+          axios.get(`http://192.168.1.72:8080/barcode/${data}`).then((item) => {
+            // Alert.alert(`Barcode ‘${data}’`);
             navigation.navigate('scannedFood', {
-              name: item.data.product.product_name_hu,
-              quantity: item.data.product.quantity
-              
+              name: item.data.name,
+              quantity: item.data.quantity,
+              unit: item.data.unit
             })
           }).catch((e) => {
             console.error(e)
