@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-community/async-storage'
 import axios from 'axios';
 import { AuthContext } from "./src/components/context";
 import splashScreen from './src/components/splash'
+import FlashMessage from "react-native-flash-message";
 const BottomTab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
@@ -150,6 +151,7 @@ export default App = () => {
       <NavigationContainer>
         {state.userToken != null ? (createBottomTabs()) : (AuthStackScreen())}
       </NavigationContainer>
+      <FlashMessage position="top" />
     </AuthContext.Provider>
   )
 }

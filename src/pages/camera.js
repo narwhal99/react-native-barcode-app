@@ -22,10 +22,15 @@ export default App = ({ navigation }) => {
             navigation.navigate('scannedFood', {
               name: item.data.name,
               quantity: item.data.quantity,
-              unit: item.data.unit
+              unit: item.data.unit,
+              barcode: data
             })
           }).catch((e) => {
-            console.error(e)
+            navigation.navigate('scannedFood', {
+              error: 'Ilyen barcode nem található, kérlek add meg az adatokat, hogy hozzáadjuk a rendszerhez',
+              quantity: 0,
+              barcode: data
+            })
           })
         }}
       />
